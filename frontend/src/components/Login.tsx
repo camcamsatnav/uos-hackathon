@@ -1,5 +1,5 @@
 import { SignInButton } from "@clerk/clerk-react"
-import {Button} from "@mui/material";
+import { Button } from "@mui/material";
 function Login() {
 
     //put login page stuff here :D
