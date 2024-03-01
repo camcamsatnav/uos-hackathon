@@ -3,6 +3,7 @@ import json
 from django.shortcuts import HttpResponse
 from django.core import serializers
 from django.db.models import Q
+from django.views.decorators.csrf import csrf_exempt
 
 from .models import Module, Project, Student, Academics, Convener, Grade, IndividualMark
 
@@ -75,20 +76,6 @@ def student(request):
         return HttpResponse(data)
 
 
-def exam(request):
-    try:
-        examID = request.GET['id']
-    except:
-        examID = ''
-
-    if examID == '':
-        data = serializers.serialize('json', Project.objects.all())
-    else:
-        idList = examID.split(',')
-        data = serializers.serialize('json', Project.objects.filter(id__in=idList))
-    return HttpResponse(data)
-
-
 def academics(request):
     try:
         academicsID = request.GET['id']
@@ -113,6 +100,58 @@ def academics(request):
         return HttpResponse(data)
 
 
+@csrf_exempt
+def postMarks(request):
+    # Add state based validation
+    # disallow editing of marks if state is SUBMITTED or MODERATED
+    jsonObj = json.loads(request.body.decode('utf-8'))
+    data = {
+        'studentID': int(jsonObj.get('studentId')),
+        'projectID': int(jsonObj.get('projectId')),
+        'academicID': int(jsonObj.get('academicId')),
+        'score': int(jsonObj.get('score'))
+    }
+    project = Project.objects.filter(id__exact=data['projectID'])[0]
+    student = Student.objects.filter(id__exact=data['studentID'])[0]
+    academic = Academics.objects.filter(id__exact=data['academicID'])[0]
+    individual = IndividualMark(student=student, project=project, academics=academic,
+                                mark=data['score'])
+    individual.save()
+
+    criteria1 = Q(student__exact=data['studentID'])
+    criteria2 = Q(project__exact=data['projectID'])
+    grades = Grade.objects.filter(criteria1 & criteria2)
+
+    if len(grades) == 0:
+        return HttpResponse('{"error": "No grade for that student and project"}')
+    else:
+        grade = grades[0]
+        if grade.state in ['SUBMITTED', 'MODERATED']:
+            return HttpResponse('{"error": "Marks cannot be posted for a project in this state"}')
+
+        grade.marks.add(individual)
+        grade.save()
+
+        length = len(grade.marks.all())
+        if length >= 2:
+            grade.state = 'SUBMITTED'
+
+            total = 0
+            for mark in grade.marks.all():
+                total += mark.mark
+            average = total / length
+            if 40 >= average >= 37:
+                grade.state = 'MODERATIONPENDING'
+
+            marks = list(grade.marks.all())
+            marks.sort(key=lambda x: x.mark, reverse=True)
+            if marks[0].mark - marks[-1].mark >= 10:
+                grade.state = 'MODERATIONPENDING'
+
+        grade.save()
+        return HttpResponse('{"success": "Marks posted"}')
+
+
 def convener(request):
     try:
         convenerID = request.GET['id']
@@ -123,18 +162,4 @@ def convener(request):
         data = serializers.serialize('json', Convener.objects.all())
     else:
         data = serializers.serialize('json', Convener.objects.filter(clerk_id__exact=convenerID))
-    return HttpResponse(data)
-
-
-def module(request):
-    try:
-        moduleID = request.GET['id']
-    except:
-        moduleID = ''
-
-    if moduleID == '':
-        data = serializers.serialize('json', Module.objects.all())
-    else:
-        idList = moduleID.split(',')
-        data = serializers.serialize('json', Module.objects.filter(id__in=idList))
     return HttpResponse(data)

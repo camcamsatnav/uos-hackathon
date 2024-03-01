@@ -1,4 +1,3 @@
-from django.core.validators import validate_comma_separated_integer_list
 from django.db import models
 
 
@@ -34,11 +33,14 @@ class IndividualMark(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
     academics = models.ForeignKey(Academics, on_delete=models.CASCADE)
 
+    class Meta:
+        unique_together = (("project", "student", "academics"),)
+
 
 class Grade(models.Model):
     ExamState = models.TextChoices("ExamState", "PENDING SUBMITTED MODERATIONPENDING MODERATED")
     id = models.AutoField(primary_key=True)
-    marks = models.ManyToManyField(IndividualMark)
+    marks = models.ManyToManyField(IndividualMark, blank=True)
     state = models.CharField(choices=ExamState.choices, default=ExamState.PENDING, max_length=20)
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
