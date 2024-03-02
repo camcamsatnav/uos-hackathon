@@ -1,11 +1,11 @@
-import { SignOutButton, SignedOut, SignedIn, useUser, UserButton } from "@clerk/clerk-react";
+import {SignOutButton, SignedOut, SignedIn, useUser, UserButton} from "@clerk/clerk-react";
 import Login from "./components/Login.tsx";
 import Student from "./components/Student.tsx";
-
+import AcademicDash from "./components/AcademicDash.tsx";
 
 
 function App() {
-    const { user } = useUser();
+    const {user} = useUser();
     return (
         <>
             <SignedOut>
@@ -14,10 +14,10 @@ function App() {
             <SignedIn>
                 <h1>{user?.id}</h1>
                 {user?.publicMetadata.type === "student" ?
-                <Student/> : <></>
+                    <Student/> : <></>
                 }
-                {user?.publicMetadata.type === "academics" ?
-                    <></> : <></>
+                {user?.publicMetadata.type === "academic" ?
+                    <AcademicDash/> : <></>
                 }
                 {user?.publicMetadata.type === "convenors" ?
                     <></> : <></>
@@ -28,4 +28,5 @@ function App() {
         </>
     )
 }
+
 export default App
