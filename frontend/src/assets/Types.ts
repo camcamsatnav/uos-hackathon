@@ -1,7 +1,8 @@
-type Types = {
+type StudentType = {
     clerk_id?: string;
     id: number;
     name?: string;
+    preferences?: string;
     projects: Project[];
 }
 
@@ -22,14 +23,21 @@ type AcademicType = {
     id: number;
     name: string;
     clerk_id: string;
-    students: Types[];
+    students: StudentType[];
 }
 
 type CurrentData = {
-    currentStudent: Types;
+    currentStudent: StudentType;
     currentProject: number;
     currentAcademic: number;
     tabValue: number;
     visibleTabs: boolean;
 }
-export type { Types, Project, IndividualMark, AcademicType, CurrentData};
+
+type SimpleAcademicType = {
+    id: number;
+    name: string;
+    clerk_id: string;
+    students: number[];
+}
+export type { StudentType, Project, IndividualMark, AcademicType, CurrentData, SimpleAcademicType};

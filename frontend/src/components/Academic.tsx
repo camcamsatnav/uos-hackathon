@@ -3,7 +3,7 @@ import {Button, Checkbox, FormControlLabel, TextField} from "@mui/material";
 import {useForm, SubmitHandler} from "react-hook-form"
 import {CurrentData} from "../assets/Types.ts";
 
-interface AcademicProps {
+type AcademicProps = {
     currentData: CurrentData;
     setCurrentData: Dispatch<SetStateAction<CurrentData>>;
 }
@@ -25,8 +25,7 @@ function Academic({currentData, setCurrentData}: AcademicProps) {
         };
         fetch('https://ee07-131-227-156-30.ngrok-free.app/api/marks/', requestOptions)
             .then(response => response.json())
-            .then(data => {
-                console.log(data);
+            .then(() => {
                 setCurrentData({
                     ...currentData,
                     visibleTabs: true,
