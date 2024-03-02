@@ -31,6 +31,7 @@ def getStudentData(studentID, isStudent=True):
     individualMarks = IndividualMark.objects.filter(criteria1 & criteria2)
     jsonObj['id'] = students[0].id
     jsonObj['name'] = students[0].name
+    jsonObj['preferences'] = students[0].preferences
 
     jsonObj['projects'] = []
     for project in projects:

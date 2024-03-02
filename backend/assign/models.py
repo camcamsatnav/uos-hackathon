@@ -16,6 +16,7 @@ class Student(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100)
     projects = models.ManyToManyField(Project)
+    preferences = models.CharField(max_length=100)
     clerk_id = models.CharField(max_length=256)
 
 
