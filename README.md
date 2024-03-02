@@ -40,7 +40,7 @@ Contributors names and contact info
 
 [Bhavya Singh](https://github.com/bhavyasingh2611)
 
-[Shreya CUMNAMIni](https://github.com/shreyakodes)
+[Shreya Kumbnani](https://github.com/shreyakodes)
 
 [Rojin Kara](https://github.com/rojinkara)
 
