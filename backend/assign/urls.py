@@ -6,4 +6,5 @@ urlpatterns = [
     path('academics/', views.academics, name='academics'),
     path('convener/', views.convener, name='convener'),
     path('marks/', views.postMarks, name='postmarks'),
+    path('assign/', views.postConvener, name='postconvener'),
 ]

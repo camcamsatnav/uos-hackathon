@@ -22,7 +22,7 @@ class Student(models.Model):
 class Academics(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100)
-    students = models.ManyToManyField(Student)
+    students = models.ManyToManyField(Student, blank=True)
     clerk_id = models.CharField(max_length=256)
 
 

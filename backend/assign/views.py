@@ -1,11 +1,10 @@
 import json
 
 from django.shortcuts import HttpResponse
-from django.core import serializers
 from django.db.models import Q
 from django.views.decorators.csrf import csrf_exempt
 
-from .models import Module, Project, Student, Academics, Convener, Grade, IndividualMark
+from .models import Project, Student, Academics, Convener, Grade, IndividualMark
 
 
 def dumper(obj):
@@ -102,21 +101,15 @@ def academics(request):
 
 @csrf_exempt
 def postMarks(request):
-    # Add state based validation
-    # disallow editing of marks if state is SUBMITTED or MODERATED
     jsonObj = json.loads(request.body.decode('utf-8'))
+    isModerationReq = False
+
     data = {
         'studentID': int(jsonObj.get('studentId')),
         'projectID': int(jsonObj.get('projectId')),
         'academicID': int(jsonObj.get('academicId')),
         'score': int(jsonObj.get('score'))
     }
-    project = Project.objects.filter(id__exact=data['projectID'])[0]
-    student = Student.objects.filter(id__exact=data['studentID'])[0]
-    academic = Academics.objects.filter(id__exact=data['academicID'])[0]
-    individual = IndividualMark(student=student, project=project, academics=academic,
-                                mark=data['score'])
-    individual.save()
 
     criteria1 = Q(student__exact=data['studentID'])
     criteria2 = Q(project__exact=data['projectID'])
@@ -124,42 +117,107 @@ def postMarks(request):
 
     if len(grades) == 0:
         return HttpResponse('{"error": "No grade for that student and project"}')
-    else:
-        grade = grades[0]
-        if grade.state in ['SUBMITTED', 'MODERATED']:
-            return HttpResponse('{"error": "Marks cannot be posted for a project in this state"}')
 
-        grade.marks.add(individual)
-        grade.save()
+    grade = grades[0]
+    if grade.state == 'MODERATIONPENDING':
+        grade.marks.all().delete()
+        IndividualMark.objects.filter(student__exact=data['studentID']).filter(
+            project__exact=data['projectID']).filter(academics__exact=data['academicID']).delete()
 
-        length = len(grade.marks.all())
-        if length >= 2:
-            grade.state = 'SUBMITTED'
+        grade.state = 'MODERATED'
+        isModerationReq = True
+    grade.save()
 
-            total = 0
-            for mark in grade.marks.all():
-                total += mark.mark
-            average = total / length
-            if 40 >= average >= 37:
-                grade.state = 'MODERATIONPENDING'
+    if grade.state in ['SUBMITTED', 'MODERATED'] and not isModerationReq:
+        return HttpResponse('{"error": "Marks cannot be posted for a project in this state"}')
 
-            marks = list(grade.marks.all())
-            marks.sort(key=lambda x: x.mark, reverse=True)
-            if marks[0].mark - marks[-1].mark >= 10:
-                grade.state = 'MODERATIONPENDING'
+    project = Project.objects.filter(id__exact=data['projectID'])[0]
+    student = Student.objects.filter(id__exact=data['studentID'])[0]
+    academic = Academics.objects.filter(id__exact=data['academicID'])[0]
+    individual = IndividualMark(student=student, project=project, academics=academic,
+                                mark=data['score'])
+    individual.save()
 
-        grade.save()
-        return HttpResponse('{"success": "Marks posted"}')
+    grade.marks.add(individual)
+    grade.save()
+
+    length = len(grade.marks.all())
+    if length >= 2 and not isModerationReq:
+        grade.state = 'SUBMITTED'
+
+        total = 0
+        for mark in grade.marks.all():
+            total += mark.mark
+        average = total / length
+        if 40 >= average >= 37:
+            grade.state = 'MODERATIONPENDING'
+
+        marks = list(grade.marks.all())
+        marks.sort(key=lambda x: x.mark, reverse=True)
+        if marks[0].mark - marks[-1].mark >= 10:
+            grade.state = 'MODERATIONPENDING'
+
+    grade.save()
+    return HttpResponse('{"success": "Marks posted"}')
 
 
 def convener(request):
     try:
         convenerID = request.GET['id']
     except:
-        convenerID = ''
+        return HttpResponse('{"error": "No convener ID provided"}')
 
-    if convenerID == '':
-        data = serializers.serialize('json', Convener.objects.all())
-    else:
-        data = serializers.serialize('json', Convener.objects.filter(clerk_id__exact=convenerID))
-    return HttpResponse(data)
+    if convenerID != '':
+        jsonObj = {}
+        convener = Convener.objects.filter(clerk_id__exact=convenerID)
+        if len(convener) == 0:
+            return HttpResponse({"error": "No convener with that ID"})
+
+        students = Student.objects.all()
+        academicList = Academics.objects.all()
+
+        studentData = []
+        academicData = []
+        for academic in academicList:
+            tempStudentData = []
+            academicStudents = academic.students.all()
+            for stu in academicStudents:
+                tempStudentData.append(stu.id)
+            academicData.append({
+                'id': academic.id,
+                'name': academic.name,
+                'students': tempStudentData,
+            })
+
+        for stu in students:
+            studentData.append(getStudentData(stu.clerk_id, False))
+
+        jsonObj['id'] = convener[0].id
+        jsonObj['name'] = convener[0].name
+        jsonObj['students'] = studentData
+        jsonObj['academics'] = academicData
+        jsonObj['clerk_id'] = convener[0].clerk_id
+
+        data = json.dumps(jsonObj, default=dumper, indent=2)
+        return HttpResponse(data)
+
+
+@csrf_exempt
+def postConvener(request):
+    jsonObj = json.loads(request.body.decode('utf-8'))
+    data = {
+        'studentID': int(jsonObj.get('studentId')),
+        'academicID': map(int, jsonObj.get('academicId'))
+    }
+
+    academic = Academics.objects.filter(id__in=data['academicID'])
+    student = Student.objects.filter(id__exact=data['studentID'])[0]
+
+    if len(academic) == 0:
+        return HttpResponse('{"error": "No academics with that ID"}')
+
+    for a in academic:
+        a.students.add(student)
+        a.save()
+
+    return HttpResponse('{"success": "Student added to academics"}')
