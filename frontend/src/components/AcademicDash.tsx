@@ -19,7 +19,7 @@ function AcademicDash() {
     const [, setIsLoading] = useState(false);
     const [academic, setAcademic] = useState<AcademicType>(); //all students that have been allocated to the academic and is requiring marking
     const [currentData, setCurrentData] = useState<CurrentData>({"currentStudent": {"id": -1, "projects": []}, "currentProject": -1, "currentAcademic": -1, "tabValue": 0, "visibleTabs": true});
-
+    const {user} = useUser();
     useEffect(() => {
         setIsLoading(true);
         fetch(`https://ee07-131-227-156-30.ngrok-free.app/api/academics/?id=${user?.id}`)
@@ -28,9 +28,9 @@ function AcademicDash() {
                 setAcademic(data);
                 setIsLoading(false);
             })
-    }, [currentData.currentStudent]);
+    }, [currentData.currentStudent, user]);
 
-    const {user} = useUser();
+
     const handleChange = (_: SyntheticEvent, newValue: number) => {
         setCurrentData({
             ...currentData,
@@ -39,20 +39,27 @@ function AcademicDash() {
     };
     return (
         <>
+            <div>
             {currentData.visibleTabs ?
                 <Tabs value={currentData.tabValue} onChange={handleChange} aria-label="tabs">
                     <Tab label="Todo" {...a11yProps(0)} />
                     <Tab label="Completed" {...a11yProps(1)} />
                 </Tabs>
                 : <></>}
+            </div>
             {currentData.currentStudent.id === -1 ?
                 <>
+                    <div>
                     <TabPanel value={currentData.tabValue} index={0}>
-                        <AcademicTable academic={academic} todo={true} currentData={currentData} setCurrentData={setCurrentData}/>
+                        {JSON.stringify(academic)?.includes("PENDING")
+                            ? <AcademicTable academic={academic} todo={true} currentData={currentData} setCurrentData={setCurrentData}/>
+                            : <h1>No students to mark</h1>
+                        }
                     </TabPanel>
                     <TabPanel value={currentData.tabValue} index={1}>
                         <AcademicTable academic={academic} todo={false} currentData={currentData} setCurrentData={setCurrentData}/>
                     </TabPanel>
+                    </div>
                 </>
                 : <Academic currentData={currentData} setCurrentData={setCurrentData}/>
             }

@@ -7,6 +7,7 @@ import TableBody from "@mui/material/TableBody";
 import TableContainer from "@mui/material/TableContainer";
 import {AcademicType, CurrentData} from "../assets/Types.ts";
 import {Dispatch, SetStateAction} from "react";
+import {useUser} from "@clerk/clerk-react";
 
 interface AcademicTableProps {
     academic: AcademicType | undefined;
@@ -17,22 +18,23 @@ interface AcademicTableProps {
 
 
 function AcademicTable({academic, todo, currentData, setCurrentData}: AcademicTableProps) {
+    const {user} = useUser() as unknown as {user: { id: string }};
     return (
         <TableContainer component={Paper}>
             <Table sx={{minWidth: 650}} aria-label="simple table">
                 <TableHead>
                     <TableRow>
-                        <TableCell>Student</TableCell>
-                        <TableCell align="right">URN</TableCell>
-                        <TableCell align="right">Module</TableCell>
-                        <TableCell align="right">Project</TableCell>
-                        <TableCell align="right">State</TableCell>
+                        <TableCell sx={{fontWeight: 700}}>Student</TableCell>
+                        <TableCell sx={{fontWeight: 700}} align="right">URN</TableCell>
+                        <TableCell sx={{fontWeight: 700}} align="right">Module</TableCell>
+                        <TableCell sx={{fontWeight: 700}} align="right">Project</TableCell>
+                        <TableCell sx={{fontWeight: 700}} align="right">State</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
                     {academic?.students.map((row) => (
                         <>
-                            {row.projects.filter(e => todo ? e.state === "PENDING" || e.state === "MODERATIONPENDING" : e.state !== "PENDING" && e.state !== "MODERATIONPENDING").map((e) => (
+                            {row.projects.filter(e => todo ? (e.state === "PENDING" || e.state === "MODERATIONPENDING") && (!JSON.stringify(e.grade).includes(user?.id) || e.state === "MODERATIONPENDING"): (JSON.stringify(e.grade).includes(user?.id) && e.state !== "MODERATIONPENDING") || e.state !== "PENDING" && e.state !== "MODERATIONPENDING").map((e) => (
                                 <TableRow
                                     key={e.id + " " + row.id}
                                     sx={{'&:last-child td, &:last-child th': {border: 0}}}
