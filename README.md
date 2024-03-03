@@ -31,6 +31,38 @@ git clone https://gitlab.surrey.ac.uk/csee/compsoc/SEM2-2024/SyntaxError.git
 ```
 ./frontend.sh
 ```
+## Logging in
+
+* To log into the app, use any of the following credentials:
+```
+student1@temp.com
+student2@temp.com
+student3@temp.com
+
+academic1@temp.com
+academic2@temp.com
+academic3@temp.com
+
+convenor1@temp.com
+convenor2@temp.com
+convenor3@temp.com
+
+password: TemporaryPassword1
+```
+
+## Admin Panel
+```
+Username: admin
+Password: admin
+```
+
+## How to reset grades
+
+* To reset grades, go to the admin panel and clear the individual marks table.
+
+## Hosted version of the app
+
+[https://hackathon.com1025.tech](https://hackathon.com1025.tech/)
 
 ## Authors
 
