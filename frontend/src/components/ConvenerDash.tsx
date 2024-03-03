@@ -20,7 +20,7 @@ function ConvenerDash() {
     const {user} = useUser();
     useEffect(() => {
         setIsLoading(true);
-        fetch(`https://ee07-131-227-156-30.ngrok-free.app/api/convener/?id=${user?.id}`)
+        fetch(`http://localhost:8000/api/convener/?id=${user?.id}`)
             .then(response => response.json())
             .then((data: {academics: SimpleAcademicType[], students: StudentType[]}) => {
                 setStudents(data.students);

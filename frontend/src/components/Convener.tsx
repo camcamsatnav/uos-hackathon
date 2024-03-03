@@ -33,7 +33,7 @@ function Convener({currentStudent, setCurrentStudent, academics}: ConvenerProps)
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({studentId: parseInt(data.id), academicId: personName})
         };
-        fetch('https://ee07-131-227-156-30.ngrok-free.app/api/assign/', requestOptions)
+        fetch('http://localhost:8000/api/assign/', requestOptions)
             .then(response => response.json())
             .then(() => {
                 setCurrentStudent({"id": -1, "projects": []});

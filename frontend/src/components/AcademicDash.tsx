@@ -22,7 +22,7 @@ function AcademicDash() {
     const {user} = useUser();
     useEffect(() => {
         setIsLoading(true);
-        fetch(`https://ee07-131-227-156-30.ngrok-free.app/api/academics/?id=${user?.id}`)
+        fetch(`http://localhost:8000/api/academics/?id=${user?.id}`)
             .then(response => response.json())
             .then(data => {
                 setAcademic(data);

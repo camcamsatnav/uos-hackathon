@@ -23,7 +23,7 @@ function Student() {
 
     useEffect(() => {
         setIsLoading(true)
-        fetch(`https://ee07-131-227-156-30.ngrok-free.app/api/student/?id=${user?.id}`)
+        fetch(`http://localhost:8000/api/student/?id=${user?.id}`)
             .then(response => response.json())
             .then(data => {
                 setStudent(data);

@@ -23,7 +23,7 @@ function Academic({currentData, setCurrentData}: AcademicProps) {
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({studentId: parseInt(data.id), projectId: currentData.currentProject, academicId: currentData.currentAcademic, score: parseInt(data.score)})
         };
-        fetch('https://ee07-131-227-156-30.ngrok-free.app/api/marks/', requestOptions)
+        fetch('http://localhost:8000/api/marks/', requestOptions)
             .then(response => response.json())
             .then(() => {
                 setCurrentData({
